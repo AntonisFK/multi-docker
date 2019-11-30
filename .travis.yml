@@ -1,0 +1,22 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t adockerlife/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+   - docker run -e CI=true adockerlife/react-test npm test
+
+after_success:
+  - docker build -t adockerlife/multi-client ./client
+  - docker build -t adockerlife/multi-nginx ./nginx
+  - docker build -t adockerlife/multi-worker ./worker 
+  - docker build -t adockerlife/multi-server ./server 
+  # Take those images and push to docker hub
+  - echo "$DOCKER_PSD" | docker login -u"$DOCKER_ID" --password-stdin
+  - docker push adockerlife/multi-client
+  - docker push adockerlife/multi-nginx
+  - docker push adockerlife/multi-worker
+  - docker push adockerlife/multi-server
+
